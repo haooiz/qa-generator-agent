@@ -33,6 +33,23 @@ streamlit run app.py
 
 브라우저에서 `http://localhost:8501` 로 접속합니다.
 
+## Streamlit Cloud 배포
+
+1. GitHub 저장소 연결: `https://github.com/haooiz/qa-generator-agent`
+2. [share.streamlit.io](https://share.streamlit.io) → **New app**
+3. Repository: `haooiz/qa-generator-agent`, Branch: `main`, Main file: `app.py`
+4. **Advanced settings → Secrets** 에 아래 입력:
+
+```toml
+OPENAI_API_KEY = "sk-..."
+OPENAI_MODEL = "gpt-4o-mini"
+```
+
+5. **Deploy** 클릭 → `https://qa-generator-agent.streamlit.app` 형태의 링크 생성
+
+> Streamlit Cloud에는 `.env`가 없습니다. **반드시 Secrets에 API 키**를 등록해야 합니다.  
+> 코드 수정 후 GitHub에 push하면 Cloud 앱이 자동으로 재배포됩니다.
+
 ## 프로젝트 구조
 
 ```

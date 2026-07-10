@@ -12,18 +12,35 @@ from utils.prompts import build_evaluation_prompt, build_generation_prompt
 load_dotenv()
 
 
+def _get_secret(key: str, default: str = "") -> str:
+    """로컬 .env 또는 Streamlit Cloud Secrets에서 값을 읽습니다."""
+    value = os.getenv(key, default)
+    if value and value != "your_openai_api_key_here":
+        return value
+
+    try:
+        import streamlit as st
+
+        if key in st.secrets:
+            return str(st.secrets[key])
+    except Exception:
+        pass
+
+    return default
+
+
 def _get_client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or api_key == "your_openai_api_key_here":
+    api_key = _get_secret("OPENAI_API_KEY")
+    if not api_key:
         raise ValueError(
             "OPENAI_API_KEY가 설정되지 않았습니다. "
-            ".env 파일에 API 키를 입력하거나 환경 변수를 설정해 주세요."
+            "로컬: .env 파일 / Streamlit Cloud: Settings → Secrets에 키를 입력해 주세요."
         )
     return OpenAI(api_key=api_key)
 
 
 def _get_model() -> str:
-    return os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    return _get_secret("OPENAI_MODEL", "gpt-4o-mini")
 
 
 def _parse_json_response(text: str) -> dict:
