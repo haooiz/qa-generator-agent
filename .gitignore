@@ -1,5 +1,4 @@
 # 환경 변수 / API 키
-.env
 .envrc
 
 # Python
