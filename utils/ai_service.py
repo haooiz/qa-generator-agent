@@ -1,21 +1,25 @@
-"""OpenAI API 연동 서비스."""
+"""Azure OpenAI API 연동 서비스."""
 
 import json
 import os
 import re
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AzureOpenAI
 
 from utils.prompts import build_evaluation_prompt, build_generation_prompt
 
 load_dotenv()
 
+DEFAULT_AZURE_ENDPOINT = "https://skax.ai-talentlab.com"
+DEFAULT_AZURE_API_VERSION = "2024-12-01-preview"
+DEFAULT_MODEL = "gpt-4.1"
+
 
 def _get_secret(key: str, default: str = "") -> str:
     """로컬 .env 또는 Streamlit Cloud Secrets에서 값을 읽습니다."""
     value = os.getenv(key, default)
-    if value and value != "your_openai_api_key_here":
+    if value and value not in ("your_openai_api_key_here", "your_azure_openai_api_key_here"):
         return value
 
     try:
@@ -29,18 +33,22 @@ def _get_secret(key: str, default: str = "") -> str:
     return default
 
 
-def _get_client() -> OpenAI:
-    api_key = _get_secret("OPENAI_API_KEY")
+def _get_client() -> AzureOpenAI:
+    api_key = _get_secret("OPENAI_API_KEY") or _get_secret("AZURE_OPENAI_API_KEY")
     if not api_key:
         raise ValueError(
-            "OPENAI_API_KEY가 설정되지 않았습니다. "
+            "OPENAI_API_KEY(또는 AZURE_OPENAI_API_KEY)가 설정되지 않았습니다. "
             "로컬: .env 파일 / Streamlit Cloud: Settings → Secrets에 키를 입력해 주세요."
         )
-    return OpenAI(api_key=api_key)
+    return AzureOpenAI(
+        azure_endpoint=_get_secret("AZURE_OPENAI_ENDPOINT", DEFAULT_AZURE_ENDPOINT),
+        api_key=api_key,
+        api_version=_get_secret("AZURE_OPENAI_API_VERSION", DEFAULT_AZURE_API_VERSION),
+    )
 
 
 def _get_model() -> str:
-    return _get_secret("OPENAI_MODEL", "gpt-4o-mini")
+    return _get_secret("OPENAI_MODEL", DEFAULT_MODEL)
 
 
 def _parse_json_response(text: str) -> dict:

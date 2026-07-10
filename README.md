@@ -25,7 +25,8 @@
 pip install -r requirements.txt
 
 # 2. API 키 설정 (.env.example 참고)
-# OPENAI_API_KEY=your_key
+# OPENAI_API_KEY=atl-...
+# AZURE_OPENAI_ENDPOINT=https://skax.ai-talentlab.com
 
 # 3. 앱 실행
 streamlit run app.py
@@ -41,14 +42,50 @@ streamlit run app.py
 4. **Advanced settings → Secrets** 에 아래 입력:
 
 ```toml
-OPENAI_API_KEY = "sk-..."
-OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_API_KEY = "atl-..."
+AZURE_OPENAI_ENDPOINT = "https://skax.ai-talentlab.com"
+AZURE_OPENAI_API_VERSION = "2024-12-01-preview"
+OPENAI_MODEL = "gpt-4.1"
 ```
 
 5. **Deploy** 클릭 → `https://qa-generator-agent.streamlit.app` 형태의 링크 생성
 
 > Streamlit Cloud에는 `.env`가 없습니다. **반드시 Secrets에 API 키**를 등록해야 합니다.  
 > 코드 수정 후 GitHub에 push하면 Cloud 앱이 자동으로 재배포됩니다.
+
+## API 키 보안 (배포 전 필수)
+
+공개 Streamlit 링크는 **누구나 API를 호출**할 수 있으므로, OpenAI에서 **전용 키 + 사용 한도**를 설정하세요.
+
+### 1. 전용 API 키 발급
+
+1. [OpenAI API Keys](https://platform.openai.com/api-keys) 접속
+2. **Create new secret key** → 이름 예: `qa-generator-과제용`
+3. **기존에 노출됐을 수 있는 키는 Revoke(폐기)** 후 새 키만 사용
+
+### 2. 사용 한도 설정
+
+1. [Limits / Billing](https://platform.openai.com/settings/organization/limits) 접속
+2. **Monthly budget** — 예: `$5` 또는 `$10` (과제용이면 낮게)
+3. 한도 도달 시 **알림 이메일** 켜기
+4. (선택) [Usage](https://platform.openai.com/usage)에서 주기적으로 사용량 확인
+
+### 3. 키 등록 위치 (GitHub에는 넣지 않음)
+
+| 환경 | 설정 위치 |
+|------|-----------|
+| 로컬 PC | 프로젝트 `.env` |
+| Streamlit Cloud | 앱 **Settings → Secrets** |
+
+```toml
+OPENAI_API_KEY = "sk-새로-발급한-전용-키"
+OPENAI_MODEL = "gpt-4o-mini"
+```
+
+### 4. 과제 종료 후
+
+- OpenAI에서 해당 키 **Revoke**
+- Streamlit Cloud Secrets에서 키 삭제
 
 ## 프로젝트 구조
 
@@ -58,7 +95,7 @@ OPENAI_MODEL = "gpt-4o-mini"
 ├── templates/             # 엑셀 출력 서식 템플릿
 └── utils/
     ├── document_parser.py # 문서 텍스트 추출
-    ├── ai_service.py      # OpenAI API 연동
+    ├── ai_service.py      # Azure OpenAI API 연동
     ├── prompts.py         # AI 프롬프트
     ├── quiz_helpers.py    # 객관식/OX 채점
     └── export.py          # 엑셀 다운로드
@@ -72,5 +109,5 @@ OPENAI_MODEL = "gpt-4o-mini"
 ## 기술 스택
 
 - Python, Streamlit
-- OpenAI API (gpt-4o-mini)
+- Azure OpenAI API (gpt-4.1, skax.ai-talentlab.com)
 - pypdf, python-docx, python-pptx, openpyxl
